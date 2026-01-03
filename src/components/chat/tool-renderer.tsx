@@ -40,15 +40,35 @@ export function ToolRenderer({ toolPart, onApprove, onSendMessage }: ToolRendere
     }
   };
 
-  // Map AI SDK v6 states to our card states
+  // Map AI SDK states to our card states
+  // AI SDK states: 'partial-call' (streaming args), 'call' (args ready/executing), 'result' (complete)
+  // NOTE: The tool has server-side execute, so it runs automatically - no user approval needed
   let cardState: 'streaming' | 'pending' | 'ready' = 'streaming';
   
-  if (toolPart.state === 'input-streaming') {
+  const state = toolPart.state;
+  const result = toolPart.result;
+  
+  // Check if we have a valid result (with actual song data, not just { approved: true })
+  const hasValidResult = result && 
+    typeof result === 'object' && 
+    ('audioUrl' in result || 'success' in result) &&
+    !('approved' in result); // Ignore corrupted { approved: true } results
+  
+  if (state === 'partial-call' || state === 'input-streaming') {
+    // Arguments are still being streamed
     cardState = 'streaming';
-  } else if (toolPart.state === 'input-available' || toolPart.state === 'approval-requested') {
-    cardState = 'pending';
-  } else if (toolPart.state === 'output-available' || toolPart.state === 'result') {
-    cardState = 'ready';
+  } else if (state === 'call' || state === 'input-available') {
+    // Tool is being called - server is executing automatically
+    // Show streaming/generating state (NOT pending - no user approval needed)
+    cardState = 'streaming';
+  } else if (state === 'result' || state === 'output-available') {
+    // Tool execution complete
+    if (hasValidResult) {
+      cardState = 'ready';
+    } else {
+      // Result is empty, corrupted, or still pending - keep showing generating state
+      cardState = 'streaming';
+    }
   }
 
   return (

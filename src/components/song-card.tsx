@@ -48,8 +48,57 @@ export function SongCard({
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  // Streaming state - show loading
+  // Streaming state - show loading (with song details if available)
   if (state === 'streaming') {
+    // If we have input (song spec), show it while generating
+    if (input && (input.title || input.mood || input.genre)) {
+      return (
+        <div className="song-card">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Loader2 className="w-7 h-7 text-amber-500 animate-spin" />
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-lg text-white truncate">
+                {input.title || 'Your Song'}
+              </h3>
+              
+              <div className="flex flex-wrap gap-2 mt-2">
+                {input.mood && (
+                  <span className="tag">{input.mood}</span>
+                )}
+                {input.genre && (
+                  <span className="tag">{input.genre}</span>
+                )}
+                {input.lengthMs && (
+                  <span className="tag flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {formatDuration(input.lengthMs)}
+                  </span>
+                )}
+                {input.forceInstrumental && (
+                  <span className="tag">instrumental</span>
+                )}
+              </div>
+
+              {input.chorusLine && (
+                <p className="text-sm text-zinc-400 mt-3 italic">
+                  &ldquo;{input.chorusLine}&rdquo;
+                </p>
+              )}
+            </div>
+          </div>
+          
+          <div className="mt-4 pt-4 border-t border-zinc-700/50">
+            <p className="text-sm text-zinc-400">🎵 Composing your song...</p>
+            <p className="text-xs text-zinc-500 mt-1">This may take up to a minute. Please wait while we create your personalized track.</p>
+          </div>
+        </div>
+      );
+    }
+    
+    // Fallback loading state (no input yet)
     return (
       <div className="song-card animate-pulse">
         <div className="flex items-center gap-3">
@@ -121,7 +170,12 @@ export function SongCard({
 
   // Ready state - show player and quick actions
   if (state === 'ready' && output) {
-    if (!output.success) {
+    // Only show error state if success is explicitly false (not just undefined)
+    // Also check if we have an audioUrl - if we do, it's a success even if success flag is missing
+    const hasAudio = !!output.audioUrl;
+    const isExplicitFailure = output.success === false;
+    
+    if (isExplicitFailure && !hasAudio) {
       return (
         <div className="song-card border-red-500/30">
           <div className="flex items-center gap-3">

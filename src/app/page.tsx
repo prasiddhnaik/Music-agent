@@ -68,13 +68,11 @@ export default function Home() {
     }
   };
 
-  // Handle tool approval
+  // Handle tool approval - NOTE: Currently disabled because the tool auto-executes on server
+  // Calling addToolResult would overwrite the actual result from the server
   const handleToolApproval = (toolCallId: string) => {
-    addToolResult({
-      toolCallId,
-      tool: 'generate_song',
-      output: { approved: true },
-    });
+    // Do nothing - tool executes automatically on server
+    console.log('Tool approval requested but tool auto-executes:', toolCallId);
   };
 
   // Handle sending a follow-up message (for remix/regenerate)
@@ -82,9 +80,26 @@ export default function Home() {
     sendMessage({ text });
   };
 
-  // Check if a part is a tool part
-  const isToolPart = (part: { type: string }) => {
-    return part.type.startsWith('tool-') || part.type === 'dynamic-tool';
+  // Check if a part is a tool part - check multiple indicators
+  const isToolPart = (part: Record<string, unknown>) => {
+    // Check by type name
+    if (typeof part.type === 'string') {
+      if (part.type.startsWith('tool-') || 
+          part.type === 'tool-invocation' || 
+          part.type === 'tool-result' ||
+          part.type === 'dynamic-tool') {
+        return true;
+      }
+    }
+    // Check by having toolCallId (definitive indicator)
+    if ('toolCallId' in part && part.toolCallId) {
+      return true;
+    }
+    // Check by having toolName
+    if ('toolName' in part && part.toolName) {
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -166,19 +181,24 @@ export default function Home() {
                   {message.parts
                     ?.filter(isToolPart)
                     .map((part) => {
-                      // Extract tool info from the part
+                      // Extract tool info from the part - AI SDK uses 'args' and 'result'
                       const toolPart = part as {
                         type: string;
                         toolCallId: string;
+                        toolName?: string;
                         state: string;
+                        args?: unknown;
+                        result?: unknown;
+                        // Legacy property names (fallback)
                         input?: unknown;
                         output?: unknown;
                       };
                       
-                      // Get tool name from type (e.g., 'tool-generate_song' -> 'generate_song')
-                      const toolName = toolPart.type.startsWith('tool-') 
-                        ? toolPart.type.replace('tool-', '')
-                        : 'dynamic-tool';
+                      // Get tool name from toolName property or from type (e.g., 'tool-generate_song' -> 'generate_song')
+                      const toolName = toolPart.toolName 
+                        || (toolPart.type.startsWith('tool-') 
+                          ? toolPart.type.replace('tool-', '')
+                          : 'generate_song');
                       
                       return (
                         <ToolRenderer
@@ -187,9 +207,9 @@ export default function Home() {
                             type: 'tool-invocation',
                             toolCallId: toolPart.toolCallId,
                             toolName,
-                            state: toolPart.state as 'partial-call' | 'call' | 'result',
-                            args: toolPart.input as Record<string, unknown>,
-                            result: toolPart.output as Record<string, unknown>,
+                            state: toolPart.state,
+                            args: (toolPart.args || toolPart.input) as Record<string, unknown>,
+                            result: (toolPart.result || toolPart.output) as Record<string, unknown>,
                           }}
                           onApprove={handleToolApproval}
                           onSendMessage={handleSendMessage}
