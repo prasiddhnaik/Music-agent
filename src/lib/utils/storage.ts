@@ -1,32 +1,20 @@
-import { writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
-
-const AUDIO_DIR = 'public/audio';
+import { put } from '@vercel/blob';
 
 /**
- * Save audio file to local storage and return URL
- * For MVP, we use local file storage instead of cloud blob storage
+ * Save audio file to Vercel Blob Storage and return URL
  */
 export async function saveAudioFile(
   audioBuffer: Buffer,
   filename: string
 ): Promise<string> {
-  // Ensure audio directory exists
-  const audioPath = path.join(process.cwd(), AUDIO_DIR);
-  
-  if (!existsSync(audioPath)) {
-    await mkdir(audioPath, { recursive: true });
-  }
-  
   // Sanitize filename
   const sanitizedFilename = filename.replace(/[^a-z0-9.-]/gi, '-');
-  const filePath = path.join(audioPath, sanitizedFilename);
   
-  // Write file
-  await writeFile(filePath, audioBuffer);
+  // Upload to Vercel Blob
+  const blob = await put(`audio/${sanitizedFilename}`, audioBuffer, {
+    access: 'public',
+    contentType: 'audio/mpeg',
+  });
   
-  // Return public URL
-  return `/audio/${sanitizedFilename}`;
+  return blob.url;
 }
-
