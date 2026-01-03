@@ -2,24 +2,23 @@ import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { SongSpec, SongResult } from '../types';
 import { saveAudioFile } from '../utils/storage';
 
-const MIN_CREDITS_REQUIRED = 800;
+// Maximum credits allowed per song generation
+const MAX_CREDITS_PER_SONG = 800;
+// Approximate credits per second of music (conservative estimate)
+const CREDITS_PER_SECOND = 10;
+// Max duration in ms based on credit limit
+const MAX_DURATION_MS = (MAX_CREDITS_PER_SONG / CREDITS_PER_SECOND) * 1000; // 80 seconds
 
 /**
- * Check if user has enough credits for music generation
+ * Check if song duration would exceed credit limit
  */
-async function checkCredits(client: ElevenLabsClient): Promise<{ hasEnough: boolean; remaining: number }> {
-  try {
-    const subscription = await client.user.subscription.get();
-    const remaining = subscription.characterLimit - subscription.characterCount;
-    return {
-      hasEnough: remaining >= MIN_CREDITS_REQUIRED,
-      remaining,
-    };
-  } catch (error) {
-    console.error('Failed to check credits:', error);
-    // If we can't check, allow the request (ElevenLabs will reject if insufficient)
-    return { hasEnough: true, remaining: -1 };
-  }
+function checkSongCost(durationMs: number): { allowed: boolean; estimatedCost: number; maxDurationMs: number } {
+  const estimatedCost = Math.ceil((durationMs / 1000) * CREDITS_PER_SECOND);
+  return {
+    allowed: estimatedCost <= MAX_CREDITS_PER_SONG,
+    estimatedCost,
+    maxDurationMs: MAX_DURATION_MS,
+  };
 }
 
 /**
@@ -64,10 +63,11 @@ export async function generateMusic(spec: SongSpec): Promise<SongResult> {
     apiKey,
   });
   
-  // Check if user has enough credits
-  const { hasEnough, remaining } = await checkCredits(elevenlabs);
-  if (!hasEnough) {
-    throw new Error(`Insufficient credits. You have ${remaining} credits remaining, but ${MIN_CREDITS_REQUIRED} are required for music generation.`);
+  // Check if song duration would exceed credit limit
+  const { allowed, estimatedCost, maxDurationMs } = checkSongCost(spec.lengthMs);
+  if (!allowed) {
+    const maxSeconds = Math.floor(maxDurationMs / 1000);
+    throw new Error(`Song too long! Estimated cost: ${estimatedCost} credits (max: ${MAX_CREDITS_PER_SONG}). Please request a shorter song (max ${maxSeconds} seconds).`);
   }
   
   const prompt = buildPrompt(spec);
