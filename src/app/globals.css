@@ -1,26 +1,189 @@
 @import "tailwindcss";
 
+/* Custom CSS Variables */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-amber-500: #f59e0b;
+  --color-orange-500: #f97316;
+  --color-zinc-950: #09090b;
+  --color-zinc-900: #18181b;
+  --color-zinc-800: #27272a;
+  --color-zinc-700: #3f3f46;
+  --color-zinc-500: #71717a;
+  --color-zinc-400: #a1a1aa;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Base styles */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--color-zinc-950);
+  color: #fafafa;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-zinc-700);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-zinc-600);
+}
+
+/* Song Card Styles */
+.song-card {
+  background: linear-gradient(135deg, var(--color-zinc-800), var(--color-zinc-900));
+  border: 1px solid var(--color-zinc-700);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.song-card:hover {
+  border-color: var(--color-zinc-600);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Tag styles */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  background: var(--color-zinc-700);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: var(--color-zinc-400);
+  text-transform: lowercase;
+}
+
+/* Generate button */
+.generate-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, var(--color-amber-500), var(--color-orange-500));
+  border-radius: 0.75rem;
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+}
+
+.generate-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+}
+
+.generate-button:active {
+  transform: translateY(0);
+}
+
+/* Quick action buttons */
+.quick-action {
+  padding: 0.5rem 1rem;
+  background: var(--color-zinc-700);
+  border-radius: 0.5rem;
+  color: var(--color-zinc-400);
+  font-size: 0.8125rem;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  border: none;
+}
+
+.quick-action:hover {
+  background: var(--color-zinc-600);
+  color: white;
+}
+
+/* Audio player */
+.audio-player {
+  background: var(--color-zinc-900);
+  border: 1px solid var(--color-zinc-700);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.play-button {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-amber-500), var(--color-orange-500));
+  border-radius: 50%;
+  color: white;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  border: none;
+  flex-shrink: 0;
+}
+
+.play-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+}
+
+.play-button:active {
+  transform: scale(0.98);
+}
+
+/* Message animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.message-enter {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-amber-500), var(--color-orange-500));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Focus styles */
+input:focus,
+textarea:focus,
+button:focus-visible {
+  outline: 2px solid var(--color-amber-500);
+  outline-offset: 2px;
+}
+
+/* Pulse animation for loading states */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s infinite;
 }
