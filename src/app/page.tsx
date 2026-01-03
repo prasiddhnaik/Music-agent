@@ -3,7 +3,7 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useRef, useEffect, useState, useMemo } from 'react';
-import { Send, Music2, Loader2 } from 'lucide-react';
+import { Send, Music2, Loader2, Plus } from 'lucide-react';
 import { Message } from '@/components/chat/message';
 import { ToolRenderer } from '@/components/chat/tool-renderer';
 
@@ -18,9 +18,15 @@ export default function Home() {
     status,
     addToolResult,
     error,
+    setMessages,
   } = useChat({
     transport,
   });
+
+  // Start a new chat
+  const handleNewChat = () => {
+    setMessages([]);
+  };
 
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -85,14 +91,26 @@ export default function Home() {
     <div className="min-h-screen bg-zinc-950 flex flex-col">
       {/* Header */}
       <header className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-xl sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
-            <Music2 className="w-5 h-5 text-white" />
+        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
+              <Music2 className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="font-semibold text-white">Day to Song</h1>
+              <p className="text-xs text-zinc-400">Turn your day into music</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-semibold text-white">Day to Song</h1>
-            <p className="text-xs text-zinc-400">Turn your day into music</p>
-          </div>
+          
+          {messages.length > 0 && (
+            <button
+              onClick={handleNewChat}
+              className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              New Chat
+            </button>
+          )}
         </div>
       </header>
 
