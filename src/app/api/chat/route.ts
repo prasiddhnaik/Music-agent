@@ -1,14 +1,7 @@
-import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { google } from '@ai-sdk/google';
 import { streamText, convertToModelMessages, UIMessage } from 'ai';
 import { generateSongTool } from '@/lib/tools/generate-song';
 import { SYSTEM_PROMPT } from '@/lib/utils/prompts';
-
-// Create Groq provider
-const groq = createOpenAICompatible({
-  name: 'groq',
-  apiKey: process.env.GROQ_API_KEY,
-  baseURL: 'https://api.groq.com/openai/v1',
-});
 
 // Allow streaming responses up to 5 minutes for music generation
 export const maxDuration = 300;
@@ -19,7 +12,7 @@ export async function POST(req: Request) {
     const modelMessages = await convertToModelMessages(messages);
 
     const result = streamText({
-      model: groq('llama-3.3-70b-versatile'),
+      model: google('gemini-2.0-flash'),
       system: SYSTEM_PROMPT,
       messages: modelMessages,
       tools: {
@@ -33,16 +26,14 @@ export async function POST(req: Request) {
     console.error('Chat API error:', error);
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429');
+    console.error('Error details:', errorMessage);
     
     return new Response(
       JSON.stringify({
-        error: isQuotaError 
-          ? 'API quota exceeded. Please wait a moment or check your billing settings.'
-          : 'Failed to process your request. Please try again.',
+        error: errorMessage,
       }),
       { 
-        status: isQuotaError ? 429 : 500,
+        status: 500,
         headers: { 'Content-Type': 'application/json' }
       }
     );

@@ -189,11 +189,7 @@ export default function Home() {
                   </div>
                   <div className="bg-red-500/10 border border-red-500/30 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
                     <p className="text-sm text-red-400 font-medium mb-1">Unable to get response</p>
-                    <p className="text-xs text-red-400/80">
-                      {error.message.includes('quota') || error.message.includes('429')
-                        ? 'API quota exceeded. The Gemini free tier limit has been reached. Please wait a few minutes or update your API key with billing enabled.'
-                        : error.message}
-                    </p>
+                    <p className="text-xs text-red-400/80">{error.message}</p>
                   </div>
                 </div>
               )}
