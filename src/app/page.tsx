@@ -28,14 +28,6 @@ export default function Home() {
 
   const isLoading = status === 'streaming' || status === 'submitted';
 
-  // #region agent log
-  useEffect(() => {
-    if (messages.length > 0) {
-      fetch('http://127.0.0.1:7244/ingest/904c57dc-ec51-4a10-a5dd-603f08e6fd4e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:messagesDebug',message:'Messages state',data:{count:messages.length,msgs:messages.map(m=>({id:m.id,role:m.role,partsCount:m.parts?.length,parts:m.parts?.map(p=>({type:p.type,hasText:'text' in p,text:(p as any).text?.slice(0,50)}))}))}  ,timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H3,H4'})}).catch(()=>{});
-    }
-  }, [messages]);
-  // #endregion
-
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -139,13 +131,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="space-y-6">
-              {messages.map((message) => {
-                // #region agent log
-                const textParts = message.parts?.filter((part) => part.type === 'text' && (part as any).text?.trim());
-                const allParts = message.parts || [];
-                fetch('http://127.0.0.1:7244/ingest/904c57dc-ec51-4a10-a5dd-603f08e6fd4e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:renderLoop',message:'Rendering message',data:{msgId:message.id,role:message.role,totalParts:allParts.length,textPartsAfterFilter:textParts?.length,partTypes:allParts.map(p=>p.type),firstPartKeys:allParts[0]?Object.keys(allParts[0]):[]},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2,H3,H5'})}).catch(()=>{});
-                // #endregion
-                return (
+              {messages.map((message) => (
                 <div key={message.id}>
                   {/* Render text content */}
                   {message.parts
@@ -193,20 +179,20 @@ export default function Home() {
                       );
                     })}
                 </div>
-                );
-              })}
+              ))}
               
               {/* Error display */}
               {error && (
-                <div className="flex gap-3">
+                <div className="flex gap-3 my-4">
                   <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                    <span className="text-red-500 text-lg">!</span>
+                    <span className="text-red-500 font-bold">!</span>
                   </div>
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
-                    <p className="text-sm text-red-400">
-                      {error.message.includes('429') || error.message.includes('quota')
-                        ? 'API quota exceeded. The free tier limit has been reached. Please wait a few minutes or check your Google AI billing settings.'
-                        : `Error: ${error.message}`}
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                    <p className="text-sm text-red-400 font-medium mb-1">Unable to get response</p>
+                    <p className="text-xs text-red-400/80">
+                      {error.message.includes('quota') || error.message.includes('429')
+                        ? 'API quota exceeded. The Gemini free tier limit has been reached. Please wait a few minutes or update your API key with billing enabled.'
+                        : error.message}
                     </p>
                   </div>
                 </div>
