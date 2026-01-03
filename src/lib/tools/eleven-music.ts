@@ -2,6 +2,26 @@ import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { SongSpec, SongResult } from '../types';
 import { saveAudioFile } from '../utils/storage';
 
+const MIN_CREDITS_REQUIRED = 800;
+
+/**
+ * Check if user has enough credits for music generation
+ */
+async function checkCredits(client: ElevenLabsClient): Promise<{ hasEnough: boolean; remaining: number }> {
+  try {
+    const subscription = await client.user.subscription.get();
+    const remaining = subscription.characterLimit - subscription.characterCount;
+    return {
+      hasEnough: remaining >= MIN_CREDITS_REQUIRED,
+      remaining,
+    };
+  } catch (error) {
+    console.error('Failed to check credits:', error);
+    // If we can't check, allow the request (ElevenLabs will reject if insufficient)
+    return { hasEnough: true, remaining: -1 };
+  }
+}
+
 /**
  * Build a music generation prompt from a SongSpec
  */
@@ -43,6 +63,12 @@ export async function generateMusic(spec: SongSpec): Promise<SongResult> {
   const elevenlabs = new ElevenLabsClient({
     apiKey,
   });
+  
+  // Check if user has enough credits
+  const { hasEnough, remaining } = await checkCredits(elevenlabs);
+  if (!hasEnough) {
+    throw new Error(`Insufficient credits. You have ${remaining} credits remaining, but ${MIN_CREDITS_REQUIRED} are required for music generation.`);
+  }
   
   const prompt = buildPrompt(spec);
   
