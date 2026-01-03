@@ -61,7 +61,8 @@ export function SongCard({
             <div className="h-3 bg-zinc-700 rounded w-48" />
           </div>
         </div>
-        <p className="text-sm text-zinc-400 mt-3">Composing your song...</p>
+        <p className="text-sm text-zinc-400 mt-3">🎵 Composing your song...</p>
+        <p className="text-xs text-zinc-500 mt-1">This may take up to a minute. Please wait while we create your personalized track.</p>
       </div>
     );
   }
@@ -113,6 +114,7 @@ export function SongCard({
           <Sparkles className="w-4 h-4" />
           Generate Song
         </button>
+        <p className="text-xs text-zinc-500 mt-2 text-center">Generation may take up to a minute</p>
       </div>
     );
   }
