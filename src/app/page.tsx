@@ -131,14 +131,14 @@ export default function Home() {
             </div>
           ) : (
             <div className="space-y-6">
-              {messages.map((message) => (
-                <div key={message.id}>
+              {messages.map((message, messageIndex) => (
+                <div key={`${message.id}-${messageIndex}`}>
                   {/* Render text content */}
                   {message.parts
                     ?.filter((part) => part.type === 'text' && (part as any).text?.trim())
                     .map((part, index) => (
                       <Message
-                        key={`${message.id}-text-${index}`}
+                        key={`${messageIndex}-text-${index}`}
                         role={message.role as 'user' | 'assistant'}
                         content={part.type === 'text' ? part.text : ''}
                       />
@@ -164,7 +164,7 @@ export default function Home() {
                       
                       return (
                         <ToolRenderer
-                          key={toolPart.toolCallId}
+                          key={`${messageIndex}-tool-${toolPart.toolCallId}`}
                           toolPart={{
                             type: 'tool-invocation',
                             toolCallId: toolPart.toolCallId,
